@@ -1,0 +1,1 @@
+Some notes about how to set up Ubuntu in VirtualBox on a macOS host.
