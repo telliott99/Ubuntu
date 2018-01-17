@@ -1,47 +1,23 @@
 #### Apache
 
-In this section, we'll look at using Apache as a web-server in Ubuntu.
+In this section, we'll look at using Apache as a web-server in Ubuntu.  To be sure we know how things work, I re-install Ubuntu (without the GuestAdditions).
 
 Let's start with
 
 - ``sudo apt-get install curl``
 - ``sudo apt-get install apache2``
 
-Starting and stopping the server can be done with any of these (so far as I know):
+On one run-through, Apache would not run because something else was already:  ``nginx`.
 
-- ``sudo /etc/init.d/apache2 restart``
-- ``sudo apache2ctl restart``
-- ``sudo service apache2 restart``
+Check for this with ``netstat`` ([notes](http://www.adminschoice.com/netstat-10-most-common-usage-with-examples)).
 
-#### First, stop nginx
-
-So let's do
+[link](https://askubuntu.com/questions/256013/apache-error-could-not-reliably-determine-the-servers-fully-qualified-domain-n)
 
 ```
-$ sudo apache2ctl restart
+sudo netstat -tulpn | grep :80
 ```
 
-There's an issue.  At first I thought it was due to the firewall ``ufw``.  Try ``sudo ufw allow 80``.
-
-Nope.  
-
-Following [this](https://askubuntu.com/questions/256013/apache-error-could-not-reliably-determine-the-servers-fully-qualified-domain-n)
-
-```
-$ echo "ServerName localhost" | sudo tee /etc/apache2/conf-available/fqdn.conf
-sudo a2enconf fqdn
-```
-
-Then 
-
-```
-service apache2 restart
-service apache2 reload
-```
-
-Neither works.
-
-The problem is that ``nginx`` is already running!
+When there was a problem, I got
 
 ```
 sudo netstat -tulpn | grep :80
@@ -49,13 +25,17 @@ tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      
 tcp6       0      0 :::80                   :::*                    LISTEN      901/nginx -g daemon
 ```
 
-So stop it!
+However, this doesn't usually happen.  So maybe I tried ``nginx`` first and just forgot.
 
-```
-$ sudo service nginx stop
-$ sudo service apache2 start
-$ curl localhost > x.html
-```
+Starting and stopping the server can be done with any of these (so far as I know):
+
+- ``sudo /etc/init.d/apache2 restart``
+- ``sudo apache2ctl restart``
+- ``sudo service apache2 restart``
+
+I usually do
+
+```sudo service apache2 restart```
 
 Open in Firefox:
 
@@ -65,19 +45,81 @@ That looks promising.
 
 Next, I'd like to configure Apache to serve scripts.
 
-Here are some [docs](http://httpd.apache.org/docs/current/howto/cgi.html)
+Apache [docs](https://httpd.apache.org/docs/2.4/howto/cgi.html).
 
-Every time I've gone through this before, I've done a change of setting (with Ubuntu powered down).  On the host:
+#### Serve html
+
+The docs say, whatever your script returns, it must be html, and it must be preceeded by ``Content-type..``.
+
+We'll use Python.
+
+**test**
 
 ```
-VBoxManage modifyvm Ubuntu --natpf1 "server,tcp,,8080,,8080"
+#! /usr/bin/python
+
+print """
+<!DOCTYPE html>
+  <HTML lang="en">
+    <HEAD>
+      <meta Content-Type: text/html; charset="utf-8" />
+      <TITLE>Your Title Here</TITLE>
+    </HEAD>
+    <BODY BGCOLOR="0000FF">
+      <H1>Hello, world!</H1>
+    </BODY>
+  </HTML>
 ```
 
-This tells VirtualBox to do *Network Address Translation* or NAT.  But it is not necessary to get the basic server to work.  So don't do that yet.
+I type this into TextEditor in a file on my Desktop.
+
+#### Permissions
+
+according to the [docs](https://httpd.apache.org/docs/2.4/howto/cgi.html)
+
+>    when the server starts up, it is running with the permissions of an unprivileged user - usually nobody, or www - and so it will need extra permissions to execute files that are owned by you. Usually, the way to give a file sufficient permissions to be executed by nobody is to give everyone execute permission on the file
+
+You do not need to ``chown`` or ``chgrp``.  You only need to make sure that the ``world`` has execute permissions.
+
+```
+sudo chmod 755 test.py
+```
+
+or ``chmod a+x``.
+
+#### Directory
+
+Next, we need to get the file in the right place.  The docs say the default is to serve from
+
+>    should be served from the directory /usr/local/apache2/cgi-bin/
+
+However, Ubuntu is not saving apache2 to ``/usr/local``.
+
+My initial (successful) attempts used ``/usr/lib/cgi-bin``, which I guess I got from previous attempts or from the web, I don't remember.  It's got a lot of other stuff, but OK.
+
+```
+curl localhost/cgi-bin/test.py
+```
+
+gives an error, and the log (in ``var/log/apache2/error.log`` is not informative).
 
 #### Get cgi working
 
-The directory ``/etc/apache2`` has two sub-directories ``conf-enabled`` and ``conf-available`` as well as ``mods-enabled`` and ``mods-available``.  When it is desired to activate a particular configuration, it is sym-linked into ``x.enabled`` from ``x.available``.
+The directory ``/etc/apache2`` has (among others) two sub-directories 
+
+```
+conf-available
+conf-enabled
+``` 
+
+as well as 
+
+```
+mods-available
+mods-enabled
+```
+
+When it is desired to activate a particular configuration, the appropriate file(s) are sym-linked into ``x.enabled`` from ``x.available``.  We should have something like ``cgi..`` in there, but we do not.
 
 From [here](https://askubuntu.com/questions/403067/cgi-bin-not-working) I get that ``a2enmod`` is a thing.  From the man page
 
@@ -97,57 +139,39 @@ To activate the new configuration, you need to run:
 $ sudo servoce apache2 restart
 ```
 
-We get ``cgid.conf`` and ``cgid.load``.  Making progress.
+We now have ``cgid.conf`` and ``cgid.load`` in ``/etc/apache2/mods-enabled``.
 
-#### But we need a script
-
-Use the EOF trick:
+Let's try again:
 
 ```
-$ cat << EOF > script.py
-#! /usr/bin/python
-
-print """
-<HTML>
-<HEAD>
-<TITLE>Your Title Here</TITLE>
-</HEAD>
-<BODY BGCOLOR="FFFFFF">
-<H1>Hello, world!</H1>
-</BODY>
-</HTML>
-
-EOF
+curl localhost/cgi-bin/test.py
+Content-type: text/html
+..
 ```
 
-```
-sudo cp script.py /usr/lib/cgi-bin``
-```
+Success!  So this part is necessary.
 
-Change the permissions:
+- the script must be world-executable
+- it must be in a specified place
+- we must enable cgi
 
-```
-sudo chmod 755 /usr/lib/cgi-bin/script.py
-sudo chown `whoami` /usr/lib/cgi-bin/script.py
-sudo chgrp adm /usr/lib/cgi-bin/script.py
-```
+Firefox had some trouble with my original test.
 
-```
-curl localhost/cgi-bin/script.py
-<HTML>
-<HEAD>
-<TITLE>Your Title Here</TITLE>
-</HEAD>
-<BODY BGCOLOR="FFFFFF">
-<H1>Hello, world!</H1>
-</BODY>
-</HTML>
+It doesn't want to display the html but wants to save the file somewhere.  It turns out there are two issues.  Apparently it automatically responds to a ``.py`` extension and tries to save the content as text.  So that's why I left it off.
+
+Also, it doesn't like
 
 ```
+Content-Type: text/html
+```
 
-It works!
+in the first line, it just displays that as text on the page.
 
-#### PHP
+Nevertheless, it's clear that we have a Python script working.
+
+#### How about PHP?
+
+Here is a simple PHP script:
 
 **info.php**
 
@@ -159,88 +183,35 @@ phpinfo();
 Change the permissions:
 
 ```
-
-sudo chmod 755 /usr/lib/cgi-bin/info.php
-sudo chown `whoami` /usr/lib/cgi-bin/info.php
-sudo chgrp adm /usr/lib/cgi-bin/info.php
+$ sudo chmod a+x info.php
+$ sudo cp info.php /usr/lib/cgi-bin/info.php
 ```
 
-```
-cd
-curl localhost/cgi-bin/info.php > x.html
-```
-
-We get an error.  Seems to be an issue with PHP.  Not solved yet.  I didn't have php, but this doesn't work
+We get an error.  
 
 ```
-sudo apt-get install php
+$ tail /var/log/apache2/error.log
 ..
-sudo service apache2 restart
-
+End of script output before headers: info.php
 ```
 
-There's something called php-fastcgi...
+according to the [docs](https://httpd.apache.org/docs/2.4/howto/cgi.html)
 
-It seems that PHP has got more complicated.
+Seems to be an issue with PHP, because the script won't execute from the command line.
 
-According to [this](https://www.howtoforge.com/tutorial/apache-with-php-fpm-on-ubuntu-16-04/), we need to configure Apache a bit.
+#### Notes on a LAMP stack
 
-These changes broke the server...
+[here](https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mysql-php-lamp-stack-on-ubuntu-16-04)
 
-At this point I re-installed Ubuntu from scratch.  Then
-
-```
-sudo apt-get install -y apache2
-sudo apt-get install -y php7.0 libapache2-mod-php7.0 php7.0-cli php7.0-common php7.0-mbstring php7.0-gd php7.0-intl php7.0-xml php7.0-mysql php7.0-mcrypt php7.0-zip
-php -v
-PHP 7.0.22-0ubuntu0.16.04.1 (cli) ( NTS )
-Copyright (c) 1997-2017 The PHP Group
-Zend Engine v3.0.0, Copyright (c) 1998-2017 Zend Technologies
-    with Zend OPcache v7.0.22-0ubuntu0.16.04.1, Copyright (c) 1999-2017, by Zend Technologies
-te@te-VirtualBox:~$
+are what look like good notes to read on installing such a stack, including PHP.  It's pretty clear that it doesn't come installed, as Python did.
 
 ```
-
-Now do
-
-```
-curl localhost/cgi-bin/info.php
-The program 'curl' is currently not installed. You can install it by typing:
-sudo apt install curl
-te@te-VirtualBox:~$ sudo apt-get install curl
-..
-te@te-VirtualBox:~$ curl localhost/cgi-bin/info.php
-<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
-<html><head>
-<title>404 Not Found</title>
-</head><body>
-<h1>Not Found</h1>
-<p>The requested URL /cgi-bin/info.php was not found on this server.</p>
-<hr>
-<address>Apache/2.4.18 (Ubuntu) Server at localhost Port 80</address>
-</body></html>
-te@te-VirtualBox:~$
+$ sudo apt-get install php libapache2-mod-php
+$ sudo service apache2 restart
+$ curl localhost/cgi-bin/info.php
 ```
 
-Yes, I wiped the disk.
+And it works.
 
-```
-cat << EOF > info.php
-<?php
-phpinfo();
-?>
-EOF
-```
-
-```
-sudo cp info.php /usr/lib/cgi-bin``
-sudo chmod 755 /usr/lib/cgi-bin/info.php
-sudo chown `whoami` /usr/lib/cgi-bin/info.php
-sudo chgrp adm /usr/lib/cgi-bin/info.php
-curl localhost/cgi-bin/info.php
-```
-
-Doesn't work
-
-
+<img src="figs/pic13.png" style="width: 400px;" />
 
