@@ -12,12 +12,16 @@ We'll use Virtual Box 5.2.4 and Ubuntu 16.04.3.
 - [Install](installvb.md) VB and Ubuntu
 - [Set up](shared.md) clipboard and shared folder
 
+#### Basic Linux
+
+- a bit about [root](root.md)
+- a bit about the [ufw](ufw firewall.md) firewall
+- a bit about the [vi](vi.md) editor
+
 #### ssh
 
 - [Learn](ssh1.md) to ``ssh``
 - ``ssh`` with an [RSA key](ssh2.md)
-- a bit about [root](root.md)
-- a bit about the [ufw](ufw firewall.md) firewall
 
 #### Servers
 
