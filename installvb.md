@@ -3,7 +3,7 @@
 #### start Virtual Box
 
 - Launch the app
-- press New
+- click New
 - name the VM, mine is "Ubuntu"
 
 <img src="figs/pic1.png" style="width: 400px;" />
@@ -34,12 +34,12 @@ Tell LittleSnitch to relax (allow VB to connect to a few places)
 
 - Install Ubuntu
 - download updates
-- Erase disk
-- write changes to disk
-- time zone NYC
+- Erase disk and install Ubuntu
+- Write changes to disk
+- Time zone:  NYC
 - English keyboard
 - computer name:  te-VirtualBox
-- (login auto)
+- auto login
 
 Now just wait.
 
@@ -54,12 +54,12 @@ Resist the urge to follow the instructions to "remove the disk".
 There is a banner about ``Auto capture keyboard``.  For now, just dismiss it.
 
 - CTL-OPT-T to bring up the Terminal.
-- CTL-click on the Terminal icon in the Launcher
+- CMD-click on the Terminal icon in the Launcher
 - lock to Launcher.
 
 Drag the icon out on the Desktop and then reinsert it near the top.  While we're at it, remove Amazon.
 
-Python is there.
+We have Python.
 
 <img src="figs/pic7.png" style="width: 400px;" />
 
@@ -71,6 +71,19 @@ Permissions are weird on ``/usr/local`` so:
 - ``sudo chmod 755 -R /usr/local``
 - ``sudo chgrp adm -R /usr/local``
 
+I did this more than once so I write:
+
+**perms.sh**
+
+```
+sudo chown `whoami` -R $1
+sudo chmod 755 -R $1
+sudo chgrp adm -R $1
+```
+
+```
+./perms.sh "/usr/local"
+```
 
 #### Guest additions
 
@@ -86,6 +99,6 @@ VBoxGuestAdditions.iso
  
 is inside the App.  CTL-click as usual to navigate inside and then drag a copy of the ``iso`` to the host Desktop.
 
-Mount the disk image from within the guest OS.  It is the second icon in the bottom toolbar.  If it doesn't run automatically, unmount and remount and it should work.  You may need to authenticate.
+Mount the disk image from within the guest OS.  It is the second icon in the bottom toolbar.  If it doesn't run automatically, unmount and remount and it should work.  You probably need to authenticate.
 
 

@@ -329,7 +329,7 @@ I entered my Ubuntu password.  We're in!
 
 according to the manual
 
-    With the above example, all TCP traffic arriving on port 2222 on any host interface will be forwarded to port 22 in the guest. The protocol name tcp is a mandatory attribute defining which protocol should be used for forwarding (udp could also be used). The name guestssh is purely descriptive and will be auto-generated if omitted. The number after --natpf denotes the network card, like in other parts of VBoxManage.
+>    With the above example, all TCP traffic arriving on port 2222 on any host interface will be forwarded to port 22 in the guest. The protocol name tcp is a mandatory attribute defining which protocol should be used for forwarding (udp could also be used). The name guestssh is purely descriptive and will be auto-generated if omitted. The number after --natpf denotes the network card, like in other parts of VBoxManage.
     
 To remove this forwarding rule again, use the following command:
 
@@ -337,6 +337,6 @@ To remove this forwarding rule again, use the following command:
 VBoxManage modifyvm "VM name" --natpf1 delete "guestssh"
 ```
 
-    If for some reason the guest uses a static assigned IP address not leased from the built-in DHCP server, it is required to specify the guest IP when registering the forwarding rule:
+>    If for some reason the guest uses a static assigned IP address not leased from the built-in DHCP server, it is required to specify the guest IP when registering the forwarding rule:
 
 Now what we need to do is to change the authentication so that Ubuntu accepts a key rather than have us type in a password.

@@ -13,7 +13,7 @@ $ sudo ssh-keygen -l -f /etc/ssh/ssh_host_ecdsa_key
 256 SHA256:8PEWkTXlIzbYhsmL81npx3nUOS16LFjWbH6bDWMOH2M root@te-VirtualBox (ECDSA)
 ```
 
-and also compare with the key we accepted into ``known_hosts`` on macOS ([instructions](http://superuser.com/questions/529132/how-do-i-extract-fingerprints-from-ssh-known-hosts):
+and also compare with the key we accepted into ``known_hosts`` on macOS ---    [instructions](http://superuser.com/questions/529132/how-do-i-extract-fingerprints-from-ssh-known-hosts):
 
 ```
 > ssh-keygen -l -f ~/.ssh/known_hosts
@@ -21,6 +21,8 @@ and also compare with the key we accepted into ``known_hosts`` on macOS ([instru
 256 SHA256:8PEWkTXlIzbYhsmL81npx3nUOS16LFjWbH6bDWMOH2M [127.0.0.1]:2222 (ECDSA)
 >
 ```
+
+The login works (not shown).
 
 #### Edit config
 
@@ -33,7 +35,7 @@ $ vi sshd_config
 PubkeyAuthentication yes
 ```
 
-This is already set.  We leave the Password method OK because we still need to transfer my public key to the server.
+This is already set.  We leave PasswordAuthentication ``yes`` because we still need to transfer the host's public key to the server.
 
 #### Use scp for key transfer
 
@@ -46,14 +48,14 @@ ubuntu_id_rsa.pub                               100%  419   600.9KB/s   00:00
 >
 ```
 
-On the Ubuntu guest:
+On the Ubuntu guest, check the digest of the key in the file we just copied:
 
 ```
 te@te-VirtualBox:/etc/ssh$ ssh-keygen -l -f ~/.ssh/authorized_keys
 2048 SHA256:roDxC6dAH8uvVtHQq64+fZYYOrms1Ym34Eygb1ns12w telliott_admin@Toms-MacBook-Air.local (RSA)
 ```
 
-Check that against the source.  On the host:
+Now, check that against the source.  On the host:
 
 ```
 > ssh-keygen -l -f ~/.ssh/ubuntu_id_rsa.pub
@@ -61,7 +63,7 @@ Check that against the source.  On the host:
 > 
 ```
 
-#### Edit ssh_configd and restart
+#### Edit ``ssh_configd`` and restart
 
 We need to edit ``ssh_configd`` on Ubuntu so that this line reads
 
@@ -75,7 +77,7 @@ Now restart the service.
 sudo service ssh restart
 ```
 
-It works:
+Login works:
 
 ```
 > ssh -p 2222 te@127.0.0.1
@@ -114,3 +116,5 @@ On the host:
 Welcome to Ubuntu 16.04.
 ..
 ```
+
+Looking good.
