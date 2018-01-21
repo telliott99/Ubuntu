@@ -9,7 +9,7 @@ Let's start with
 
 On one run-through, Apache would not run because something else was already:  ``nginx`.
 
-Check for this with ``netstat`` ([notes](http://www.adminschoice.com/netstat-10-most-common-usage-with-examples)).
+Check for this with ``netstat`` ([notes](http://www.adminschoice.com/netstat-10-most-common-usage-with-examples)).  (Or look for a particular server with ``ps aux | grep "nginx"``).
 
 [link](https://askubuntu.com/questions/256013/apache-error-could-not-reliably-determine-the-servers-fully-qualified-domain-n)
 
@@ -25,7 +25,7 @@ tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      
 tcp6       0      0 :::80                   :::*                    LISTEN      901/nginx -g daemon
 ```
 
-However, this doesn't usually happen.  So maybe I tried ``nginx`` first and just forgot.
+This doesn't usually happen.  So probably I tried ``nginx`` first and just forgot.
 
 Starting and stopping the server can be done with any of these (so far as I know):
 
@@ -33,17 +33,15 @@ Starting and stopping the server can be done with any of these (so far as I know
 - ``sudo apache2ctl restart``
 - ``sudo service apache2 restart``
 
-I usually do
-
-```sudo service apache2 restart```
+I usually do ``sudo service apache2 restart``
 
 Open in Firefox:
 
-<img src="figs/pic10.png" style="width: 400px;" />
+<img src="figs/pic14.png" style="width: 400px;" />
 
 That looks promising.
 
-Next, I'd like to configure Apache to serve scripts.
+Next, I want to configure Apache to serve scripts.
 
 Apache [docs](https://httpd.apache.org/docs/2.4/howto/cgi.html).
 
@@ -79,7 +77,7 @@ according to the [docs](https://httpd.apache.org/docs/2.4/howto/cgi.html)
 
 >    when the server starts up, it is running with the permissions of an unprivileged user - usually nobody, or www - and so it will need extra permissions to execute files that are owned by you. Usually, the way to give a file sufficient permissions to be executed by nobody is to give everyone execute permission on the file
 
-You do not need to ``chown`` or ``chgrp``.  You only need to make sure that the ``world`` has execute permissions.
+In other words, **you do not need to ``chown`` or ``chgrp``**.  You only need to make sure that the ``world`` has execute permission.
 
 ```
 sudo chmod 755 test.py
@@ -89,7 +87,7 @@ or ``chmod a+x``.
 
 #### Directory
 
-Next, we need to get the file in the right place.  The docs say the default is to serve from
+Next, we need to put the file in the right place.  The docs say the default is to serve from
 
 >    should be served from the directory /usr/local/apache2/cgi-bin/
 
@@ -101,7 +99,7 @@ My initial (successful) attempts used ``/usr/lib/cgi-bin``, which I guess I got 
 curl localhost/cgi-bin/test.py
 ```
 
-gives an error, and the log (in ``var/log/apache2/error.log`` is not informative).
+gives an error, and the log (``var/log/apache2/error.log`` is not informative).
 
 #### Get cgi working
 
@@ -119,7 +117,9 @@ mods-available
 mods-enabled
 ```
 
-When it is desired to activate a particular configuration, the appropriate file(s) are sym-linked into ``x.enabled`` from ``x.available``.  We should have something like ``cgi..`` in there, but we do not.
+When it is desired to activate a particular configuration, the appropriate file(s) are sym-linked into ``x.enabled`` from ``x.available``.  We should have something like ``cgi..`` in there, but we don't.
+
+<hr>
 
 From [here](https://askubuntu.com/questions/403067/cgi-bin-not-working) I get that ``a2enmod`` is a thing.  From the man page
 
@@ -157,9 +157,11 @@ Success!  So this part is necessary.
 
 Firefox had some trouble with my original test.
 
-It doesn't want to display the html but wants to save the file somewhere.  It turns out there are two issues.  Apparently it automatically responds to a ``.py`` extension and tries to save the content as text.  So that's why I left it off.
+It doesn't want to display the html but prompts the user to save the file somewhere.  It turns out there are two issues.  
 
-Also, it doesn't like
+Apparently Firefox automatically responds to a ``.py`` extension and tries to save the content as text.  So that's why I left the file extension off.
+
+Also, Firefox doesn't recognize
 
 ```
 Content-Type: text/html
@@ -180,7 +182,7 @@ Here is a simple PHP script:
 phpinfo();
 ?>
 ```
-Change the permissions:
+Change the permission:
 
 ```
 $ sudo chmod a+x info.php
@@ -197,13 +199,13 @@ End of script output before headers: info.php
 
 according to the [docs](https://httpd.apache.org/docs/2.4/howto/cgi.html)
 
-Seems to be an issue with PHP, because the script won't execute from the command line.
+Seems to be an issue with PHP, because the script also won't execute from the command line.
 
 #### Notes on a LAMP stack
 
 [here](https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mysql-php-lamp-stack-on-ubuntu-16-04)
 
-are what look like good notes to read on installing such a stack, including PHP.  It's pretty clear that it doesn't come installed, as Python did.
+are what look like good notes to read on installing such a stack, including PHP.  It's pretty clear that PHP doesn't come installed, as Python did.
 
 ```
 $ sudo apt-get install php libapache2-mod-php
@@ -211,7 +213,7 @@ $ sudo service apache2 restart
 $ curl localhost/cgi-bin/info.php
 ```
 
-And it works.
+And now it works!
 
 <img src="figs/pic13.png" style="width: 400px;" />
 

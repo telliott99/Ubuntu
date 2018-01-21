@@ -26,4 +26,7 @@ It works!  Point Firefox at ``localhost:5000``:
 
 <img src="figs/pic12.png" style="width: 400px;" />
 
+The spiffed up version runs as well.
+
+<img src="figs/pic18.png" style="width: 400px;" />
 

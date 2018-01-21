@@ -23,8 +23,12 @@ We'll use Virtual Box 5.2.4 and Ubuntu 16.04.3.
 - [Learn](ssh1.md) to ``ssh``
 - ``ssh`` with an [RSA key](ssh2.md)
 
-#### Servers
+#### Introduction to web servers
 
-- [flask](flask.md)
-- [apache](apache.md)
+- [apache](apache basic.md)
+- [issue](apache stop.md) stopping apache
+- [nginx](nginx basic.md)
+- [flask](flask_basic.md)
+- [flask app](/Users/telliott_admin/Github/flask_app/README.md)
+
 
