@@ -15,7 +15,7 @@ We'll use Virtual Box 5.2.4 and Ubuntu 16.04.3.
 #### Basic Linux
 
 - a bit about [root](root.md)
-- a bit about the [ufw](ufw firewall.md) firewall
+- a bit about the [ufw](ufw-firewall.md) firewall
 - a bit about the [vi](vi.md) editor
 
 #### ssh
@@ -25,9 +25,9 @@ We'll use Virtual Box 5.2.4 and Ubuntu 16.04.3.
 
 #### Introduction to web servers
 
-- [apache](apache basic.md)
-- [issue](apache stop.md) stopping apache
-- [nginx](nginx basic.md)
+- [apache](apache-basic.md)
+- [issue](apache-stop.md) stopping apache
+- [nginx](nginx-basic.md)
 - [flask](flask_basic.md)
 - [flask app](/Users/telliott_admin/Github/flask_app/README.md)
 
